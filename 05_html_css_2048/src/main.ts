@@ -232,6 +232,109 @@ function moveDown(j: number): boolean
 	return true;
 }
 
+function fusionRight(i: number): boolean
+{
+	const table = document.getElementById("game") as HTMLTableElement;
+	const height = table.rows.length;
+	const width = table.rows[0].cells.length;
+	
+	if(i < 0 || i > height)
+		return false;
+
+	let output = false;
+	
+	for(let j = width - 2; j >= 0; j --) {
+		if(isEmpty(i, j+1) || isEmpty(i, j))
+			continue;
+
+		if(getValue(i, j+1) != getValue(i, j))
+			continue;
+		output = true;
+		setValue(i, j+1, 2*getValue(i, j));
+		setValue(i, j, NaN);
+	}
+
+	return output;
+}
+
+function fusionLeft(i: number): boolean
+{
+	const table = document.getElementById("game") as HTMLTableElement;
+	const height = table.rows.length;
+	const width = table.rows[0].cells.length;
+	
+	if(i < 0 || i > height)
+		return false;
+
+	let output = false;
+	
+	for(let j = 1; j < width; j ++) {
+		if(isEmpty(i, j-1) || isEmpty(i, j))
+			continue;
+
+		if(getValue(i, j-1) != getValue(i, j))
+			continue;
+
+		output = true;
+		setValue(i, j-1, 2*getValue(i, j));
+		setValue(i, j, NaN);
+	}
+
+	return output;
+}
+
+function fusionUp(j: number): boolean
+{
+	const table = document.getElementById("game") as HTMLTableElement;
+	const height = table.rows.length;
+	const width = table.rows[0].cells.length;
+	
+	if(j < 0 || j > width)
+		return false;
+
+	let output = false;
+	
+	for(let i = 1; i < height; i ++) {
+		if(isEmpty(i-1, j) || isEmpty(i, j))
+			continue;
+
+		if(getValue(i-1, j) != getValue(i, j))
+			continue;
+
+		output = true;
+		setValue(i-1, j, 2*getValue(i, j));
+		setValue(i, j, NaN);
+	}
+
+	return output;
+}
+
+function fusionDown(j: number): boolean
+{
+	const table = document.getElementById("game") as HTMLTableElement;
+	const height = table.rows.length;
+	const width = table.rows[0].cells.length;
+	
+	if(j < 0 || j > width)
+		return false;
+
+	let output = false;
+	
+	for(let i = height; i >= 0; i --) {
+		if(isEmpty(i+1, j) || isEmpty(i, j))
+			continue;
+
+		if(getValue(i+1, j) != getValue(i, j))
+			continue;
+
+		output = true;
+		setValue(i+1, j, 2*getValue(i, j));
+		setValue(i, j, NaN);
+	}
+
+	return output;
+}
+
 function tests()
 {
 	const y = 2;
@@ -263,6 +366,7 @@ function tests()
 	setValue(3, 0, NaN);
 	console.assert(isNaN(getValue(3, 0)), "Data non de-initialized");
 
+	/* Tests défi 10 */
 	// Exemple 1
 	setValue(0, 2, 2);
 	moveRight(0);
@@ -299,6 +403,51 @@ function tests()
 	console.assert(!isNaN(getValue(3, 1)), "exemple4_2", getValue(3, 1));
 	console.assert(!isNaN(getValue(3, 2)), "exemple4_3", getValue(3, 2));
 	console.assert(!isNaN(getValue(3, 3)), "exemple4_4", getValue(3, 3));
+
+	/* Tests défi 11 */
+	// Exemple 1
+	setValue(0, 0, NaN);
+	setValue(0, 1, NaN);
+	setValue(0, 2, 2);
+	setValue(0, 3, 2);
+	fusionRight(0);
+	console.assert( isNaN(getValue(0, 0)), "exemple5_1", getValue(0, 0));
+	console.assert( isNaN(getValue(0, 1)), "exemple5_2", getValue(0, 1));
+	console.assert( isNaN(getValue(0, 2)), "exemple5_3", getValue(0, 2));
+	console.assert(!isNaN(getValue(0, 3)), "exemple5_4", getValue(0, 3));
+
+	// Exemple 2
+	setValue(1, 0, 4);
+	setValue(1, 1, 4);
+	setValue(1, 2, 2);
+	setValue(1, 3, 2);
+	fusionRight(1);
+	console.assert( isNaN(getValue(1, 0)), "exemple6_1", getValue(1, 0));
+	console.assert(!isNaN(getValue(1, 1)), "exemple6_2", getValue(1, 1));
+	console.assert( isNaN(getValue(1, 2)), "exemple6_3", getValue(1, 2));
+	console.assert(!isNaN(getValue(1, 3)), "exemple6_4", getValue(1, 3));
+
+	// Exemple 3
+	setValue(2, 0, NaN);
+	setValue(2, 1, 2);
+	setValue(2, 2, 2);
+	setValue(2, 3, 2);
+	fusionRight(2);
+	console.assert( isNaN(getValue(2, 0)), "exemple7_1", getValue(2, 0));
+	console.assert(!isNaN(getValue(2, 1)), "exemple7_2", getValue(2, 1));
+	console.assert( isNaN(getValue(2, 2)), "exemple7_3", getValue(2, 2));
+	console.assert(!isNaN(getValue(2, 3)), "exemple7_4", getValue(2, 3));
+
+	// Exemple 4
+	setValue(3, 0, NaN);
+	setValue(3, 1, 2);
+	setValue(3, 2, 2);
+	setValue(3, 3, 4);
+	fusionRight(3);
+	console.assert( isNaN(getValue(3, 0)), "exemple8_1", getValue(3, 0));
+	console.assert( isNaN(getValue(3, 1)), "exemple8_2", getValue(3, 1));
+	console.assert(!isNaN(getValue(3, 2)), "exemple8_3", getValue(3, 2));
+	console.assert(!isNaN(getValue(3, 3)), "exemple8_4", getValue(3, 3));	
 }
 
 document.addEventListener("DOMContentLoaded", (event) => {
