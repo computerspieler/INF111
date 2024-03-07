@@ -335,6 +335,58 @@ function fusionDown(j: number): boolean
 	return output;
 }
 
+function right(i: number): boolean
+{
+	let cont = true;
+	let output = false;
+	while(cont) {
+		const fus = fusionRight(i);
+		output ||= fus;
+		cont = fus;
+		cont ||= moveRight(i);
+	}
+	return cont;
+}
+
+function left(i: number): boolean
+{
+	let cont = true;
+	let output = false;
+	while(cont) {
+		const fus = fusionLeft(i);
+		output ||= fus;
+		cont = fus;
+		cont ||= moveLeft(i);
+	}
+	return output;
+}
+
+function up(j: number): boolean
+{
+	let cont = true;
+	let output = false;
+	while(cont) {
+		const fus = fusionUp(j);
+		output ||= fus;
+		cont = fus;
+		cont ||= moveUp(j);
+	}
+	return output;
+}
+
+function down(j: number): boolean
+{
+	let cont = true;
+	let output = false;
+	while(cont) {
+		const fus = fusionDown(j);
+		output ||= fus;
+		cont = fus;
+		cont ||= moveDown(j);
+	}
+	return output;
+}
+
 function tests()
 {
 	const y = 2;
@@ -447,7 +499,36 @@ function tests()
 	console.assert( isNaN(getValue(3, 0)), "exemple8_1", getValue(3, 0));
 	console.assert( isNaN(getValue(3, 1)), "exemple8_2", getValue(3, 1));
 	console.assert(!isNaN(getValue(3, 2)), "exemple8_3", getValue(3, 2));
-	console.assert(!isNaN(getValue(3, 3)), "exemple8_4", getValue(3, 3));	
+	console.assert(!isNaN(getValue(3, 3)), "exemple8_4", getValue(3, 3));
+
+	/* Tests défi 12 */
+	// Exemple 1
+	setValue(0, 0, NaN); setValue(0, 1, NaN); setValue(0, 2, 2); setValue(0, 3, 2);
+	setValue(1, 0, 4); setValue(1, 1, 2); setValue(1, 2, NaN); setValue(1, 3, NaN);
+	setValue(2, 0, 4); setValue(2, 1, 4); setValue(2, 2, NaN); setValue(2, 3, NaN);
+	setValue(3, 0, 2); setValue(3, 1, NaN); setValue(3, 2, NaN); setValue(3, 3, 2);
+
+	right(0); right(1); right(2); right(3);
+
+	console.assert(isNaN(getValue(0, 0)), "exemple9_0_0");
+	console.assert(isNaN(getValue(0, 1)), "exemple9_0_1");
+	console.assert(isNaN(getValue(0, 2)), "exemple9_0_2");
+	console.assert(getValue(0, 3) == 4,   "exemple9_0_3");
+
+	console.assert(isNaN(getValue(1, 0)), "exemple9_1_0");
+	console.assert(isNaN(getValue(1, 1)), "exemple9_1_1");
+	console.assert(getValue(1, 2) == 4,   "exemple9_1_2");
+	console.assert(getValue(1, 3) == 2,   "exemple9_1_3");
+
+	console.assert(isNaN(getValue(2, 0)), "exemple9_2_0");
+	console.assert(isNaN(getValue(2, 1)), "exemple9_2_1");
+	console.assert(isNaN(getValue(2, 2)), "exemple9_2_2");
+	console.assert(getValue(2, 3) == 8,   "exemple9_2_3");
+
+	console.assert(isNaN(getValue(3, 0)), "exemple9_3_0");
+	console.assert(isNaN(getValue(3, 1)), "exemple9_3_1");
+	console.assert(isNaN(getValue(3, 2)), "exemple9_3_2");
+	console.assert(getValue(3, 3) == 4,   "exemple9_3_3");
 }
 
 document.addEventListener("DOMContentLoaded", (event) => {
