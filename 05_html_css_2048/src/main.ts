@@ -17,34 +17,6 @@ function updateScore(): void {
 	document.getElementById("score").textContent = score.toString();
 }
 
-function haut(): void
-{
-	console.log("haut");
-	score += 1;
-	updateScore();
-}
-
-function bas(): void
-{
-	console.log("bas");
-	score += 1;
-	updateScore();
-}
-
-function gauche(): void
-{
-	console.log("gauche");
-	score += 1;
-	updateScore();
-}
-
-function droite(): void
-{
-	console.log("droite");
-	score += 1;
-	updateScore();
-}
-
 function getCell(i: number, j: number): HTMLTableCellElement | undefined
 {
 	const table: HTMLTableElement = document.getElementById("game") as HTMLTableElement;
@@ -99,11 +71,22 @@ function isEmpty(i: number, j: number): boolean
 	return isNaN(Number(cell.textContent));
 }
 
+let continue_playing = true;
+let can_move_up = true;
+let can_move_down = true;
+let can_move_left = true;
+let can_move_right = true;
+
 function newGame(): void
 {
 	const table: HTMLTableElement = document.getElementById("game") as HTMLTableElement;
 	const height = table.rows.length;
 	const width = table.rows[0].cells.length;
+
+	can_move_up = true;
+	can_move_down = true;
+	can_move_left = true;
+	can_move_right = true;
 
 	// On nettoie le terrain de jeu
 	for(let i = 0; i < height; i ++)
@@ -128,6 +111,8 @@ function newGame(): void
 
 	setValue(y1, x1, v1);
 	setValue(y2, x2, v2);
+	
+	continue_playing = true;
 }
 
 function moveRight(i: number): boolean
@@ -136,7 +121,7 @@ function moveRight(i: number): boolean
 	const height = table.rows.length;
 	const width = table.rows[0].cells.length;
 	
-	if(i < 0 || i > height)
+	if(i < 0 || i >= height)
 		return false;
 
 	let output = false;
@@ -263,7 +248,7 @@ function fusionLeft(i: number): boolean
 	const height = table.rows.length;
 	const width = table.rows[0].cells.length;
 	
-	if(i < 0 || i > height)
+	if(i < 0 || i >= height)
 		return false;
 
 	let output = false;
@@ -341,9 +326,9 @@ function right(i: number): boolean
 	let output = false;
 	while(cont) {
 		const fus = fusionRight(i);
-		output ||= fus;
-		cont = fus;
-		cont ||= moveRight(i);
+		const mov = moveRight(i);
+		cont = fus || mov;
+		output ||= cont;
 	}
 	return cont;
 }
@@ -354,9 +339,9 @@ function left(i: number): boolean
 	let output = false;
 	while(cont) {
 		const fus = fusionLeft(i);
-		output ||= fus;
-		cont = fus;
-		cont ||= moveLeft(i);
+		const mov = moveLeft(i);
+		cont = fus || mov;
+		output ||= cont;
 	}
 	return output;
 }
@@ -367,9 +352,9 @@ function up(j: number): boolean
 	let output = false;
 	while(cont) {
 		const fus = fusionUp(j);
-		output ||= fus;
-		cont = fus;
-		cont ||= moveUp(j);
+		const mov = moveUp(j);
+		cont = fus || mov;
+		output ||= cont;
 	}
 	return output;
 }
@@ -380,9 +365,9 @@ function down(j: number): boolean
 	let output = false;
 	while(cont) {
 		const fus = fusionDown(j);
-		output ||= fus;
-		cont = fus;
-		cont ||= moveDown(j);
+		const mov = moveDown(j);
+		cont = fus || mov;
+		output ||= cont;
 	}
 	return output;
 }
@@ -531,19 +516,88 @@ function tests()
 	console.assert(getValue(3, 3) == 4,   "exemple9_3_3");
 }
 
+
 document.addEventListener("DOMContentLoaded", (event) => {
 	tests();
 	newGame();
 });
 
+function game_over()
+{
+	continue_playing = false;
+	alert("Game over !");
+}
+
 document.body.addEventListener('keydown', (ev) => {
-	if(ev.key == 'ArrowUp')
-		haut();
-	else if(ev.key == 'ArrowDown')
-		bas();
-	else if(ev.key == 'ArrowLeft')
-		gauche();
-	else if(ev.key == 'ArrowRight')
-		droite();
+	let i : number;
+	const table: HTMLTableElement = document.getElementById("game") as HTMLTableElement;
+	const height = table.rows.length;
+	const width = table.rows[0].cells.length;
+
+	if(!continue_playing)
+		return;
+	
+	if(ev.key == 'ArrowUp') {
+		can_move_up = false;
+		for(i = 0; i < height; i ++) {
+			/*
+				Je suis obligé de faire ça à cause du "Lazy Evaluation",
+				car dès qu'une colonne est modifié, can_move_up passe
+				à true et les colonnes suivantes ne sont plus modifiés.
+			*/
+			const tmp = up(i);
+			can_move_up ||= tmp;
+		}
+	}
+	else if(ev.key == 'ArrowDown') {
+		can_move_down = false;
+		for(i = 0; i < height; i ++) {
+			const tmp = down(i);
+			can_move_down ||= tmp;
+		}
+	}
+	else if(ev.key == 'ArrowLeft'){
+		can_move_left = false;
+		for(i = 0; i < width; i ++) {
+			const tmp = left(i);
+			can_move_left ||= tmp;
+		}
+	}
+	else if(ev.key == 'ArrowRight'){
+		can_move_right = false;
+		for(i = 0; i < width; i ++) {
+			const tmp = right(i);
+			can_move_right ||= tmp;
+		}
+	}
+
+	if(!can_move_up && !can_move_down && !can_move_left && !can_move_right) {
+		game_over();
+		return;
+	}
+
+	let available_cells = [];
+	for(let j = 0; j < table.rows.length; j ++) {
+		for(i = 0; i < table.rows[j].cells.length; i ++) {
+			if(isEmpty(j, i))
+				available_cells.push([j, i]);
+		}
+	}
+
+	if(available_cells.length == 0)
+		return;
+
+	const v = Math.random() >= 0.86 ? 4 : 2;
+	const pos = Math.floor(Math.random() * available_cells.length);
+
+	can_move_up = true;
+	can_move_down = true;
+	can_move_left = true;
+	can_move_right = true;
+
+	setValue(available_cells[pos][0], available_cells[pos][1], v);
+
+	score += 1;
+	updateScore();
 });
 
