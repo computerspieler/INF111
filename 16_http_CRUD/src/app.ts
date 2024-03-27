@@ -80,10 +80,48 @@ class DeleteClient<T> extends HttpClient<T> {
 	}
 }
 
-//lecture de tous les restaurants
-const url = "http://localhost:3000/restaurants";
+class DeleteCategory {
+	protected restaurants_url: string;
+	protected catDeleter: DeleteClient<Category>;
 
-const readClient = new ReadClient<Restaurant[]>(url);
+	constructor(url: string, restaurants_url: string) {
+		this.catDeleter = new DeleteClient<Category>(url);
+		this.restaurants_url = restaurants_url;
+	}
+
+	public async execute(): Promise<Restaurant[] | void> {
+		return this.catDeleter.execute().then((category : Category) => {
+			if(!category)
+				return;
+			
+			return new ReadClient<Restaurant[]>(this.restaurants_url)
+			.execute()
+			.then((restaurants) => {
+				if(!restaurants)
+					return;
+
+				restaurants.map((rest) => {
+					let catID = rest.categoryIds.filter((id: string) => id != category.id);
+					rest.categoryIds = catID;
+					let updateReq = new UpdateClient<Restaurant>(`${this.restaurants_url}/${rest.id}`, rest);
+					return updateReq.execute();
+				});
+
+				return restaurants;
+			});
+		})
+		.catch(() => {
+			console.log("Already deleted !");
+		});
+	}
+}
+
+
+//lecture de tous les restaurants
+const restaurant_url = "http://localhost:3000/restaurants";
+const category_url = "http://localhost:3000/categories";
+
+const readClient = new ReadClient<Restaurant[]>(restaurant_url);
 readClient.execute().then((restaurants) => {
 	if (restaurants) {
 		restaurants.forEach((restaurant) => {
@@ -93,7 +131,7 @@ readClient.execute().then((restaurants) => {
 });
 
 //suppression du restaurant "Le Café Rigolo"
-const deleteClient = new DeleteClient<Restaurant>(`${url}/3aa8`);
+const deleteClient = new DeleteClient<Restaurant>(`${restaurant_url}/3aa8`);
 deleteClient.execute().then((restaurant) => {
 	if (restaurant) {
 		console.log(`DELETE id : ${restaurant.id} name : ${restaurant.name} `);
@@ -107,7 +145,7 @@ const data: Restaurant = {
 	categoryIds: ["71b2"],
 };
 
-const createClient = new CreateClient<Restaurant>(url, data);
+const createClient = new CreateClient<Restaurant>(restaurant_url, data);
 createClient.execute().then((restaurant) => {
 	if (restaurant) {
 		console.log(`CREATE id : ${restaurant.id} name : ${restaurant.name} `);
@@ -119,11 +157,16 @@ const updatedData: Restaurant = {
 	name: "Le Grill Super Marrant",
 };
 
-const updateClient = new UpdateClient<Restaurant>(`${url}/12b3`, updatedData);
+const updateClient = new UpdateClient<Restaurant>(`${restaurant_url}/12b3`, updatedData);
 updateClient.execute().then((restaurant) => {
 	if (restaurant) {
 		console.log(`UPDATE id : ${restaurant.id} name : ${restaurant.name} `);
 	}
+});
+
+const deleteCategory = new DeleteCategory(`${category_url}/71b2`, restaurant_url);
+deleteCategory.execute().then((restaurants) => {
+	console.log(restaurants);
 });
 
 /*la sortie de la console devrait être : (attention à l'order des opérations asynchrones 
