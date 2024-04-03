@@ -38,6 +38,7 @@ interface Measurement {
 	date: MeasurementDate;
 	unit: string;
 	value: number;
+	parameter: string;
 }
 
 interface OpenAQReturn<T> {
@@ -58,8 +59,13 @@ class FormHandler
 	city: HTMLInputElement;
 	reco: HTMLElement;
 	reco_body: HTMLElement;
+	on_error: HTMLElement;
 
 	locations: GeocodeResult[];
+	currentLatitude: number;
+	currentLongitutde: number;
+
+	refreshTimeout;
 
 	constructor()
 	{
@@ -68,11 +74,14 @@ class FormHandler
 		this.result = document.getElementById("result") as HTMLDivElement;
 		this.reco = document.getElementById("reco") as HTMLTableElement;
 		this.reco_body = document.getElementById("reco_body") as HTMLTableElement;
+		this.on_error = document.getElementById("onerror");
 
-		this.reco.style.visibility = "hidden";
+		this.resetOutput();
+		this.clearRecommandations();
 
 		this.form.addEventListener("submit", this.handleSubmission.bind(this));
 		this.form.addEventListener("change", this.handleLocationText.bind(this));
+
 		//this.city.addEventListener("keypress", this.handleLocationText.bind(this));
 	}
 
@@ -82,23 +91,43 @@ class FormHandler
 		return req.json();
 	}
 
-	clearOutput() {
-		// On se débarasse des anciennes recommandations & résultats
-		this.result.style.visibility = "hidden";
+	clearRecommandations() {
 		this.reco.style.visibility = "hidden";
-
 		while(this.reco_body.children.length > 0)
 			this.reco_body.removeChild(this.reco_body.children[0]);
+	}
+
+	clearOutput() {
 		while(this.result.children.length > 0)
 			this.result.removeChild(this.result.children[0]);
+	}
+
+	resetOutput() {
+		// On se débarasse des anciennes recommandations & résultats
+		this.result.style.visibility = "hidden";
+		this.on_error.style.visibility = "hidden";
+
+		this.clearOutput();
+
+		this.currentLatitude = undefined;
+		this.currentLongitutde = undefined;
+
+		// Il faut aussi se débarasser du timer
+		clearTimeout(this.refreshTimeout);
 	}
 
 	async handleLocationText() : Promise<void> {
 		this.locations = (await this.getLocations(this.city.value)).features;
 
-		this.clearOutput();
+		this.clearRecommandations();
+		this.resetOutput();
 
 		this.locations = this.locations.filter((elt) => elt.geometry.type == "Point");
+		if(this.locations.length == 0) {
+			this.on_error.style.visibility = "visible";
+			return;
+		}
+
 		for(let i = 0; i < this.locations.length; i ++) {
 			let col : HTMLTableCellElement;
 			let button : HTMLButtonElement;
@@ -132,33 +161,47 @@ class FormHandler
 		this.reco.style.visibility = "visible";
 	}
 
-	async getMeasurements(latitude, longitude) : Promise<OpenAQReturn<Measurement>> {
-		const uri = `http://localhost:8088/https://api.openaq.org/v2/measurements?limit=100&offset=0&sort=desc&radius=20000&order_by=datetime&coordinates=${latitude},${longitude}`;
+	async getMeasurements() : Promise<OpenAQReturn<Measurement>> {
+		const uri = `http://localhost:8088/https://api.openaq.org/v2/measurements?limit=100&offset=0&sort=desc&radius=20000&order_by=datetime&coordinates=${this.currentLatitude.toFixed(4)},${this.currentLongitutde.toFixed(4)}`;
 		const req = await fetch(uri);
 		return req.json();
+	}
+
+	async refreshResults() : Promise<void> {
+		this.getMeasurements().then((resp_val) => {
+			const res = resp_val.results;
+			if(res.length > 0) {
+				this.clearOutput();
+				for(let i = 0; i < res.length; i ++) {
+					let row = document.createElement("div");
+					const out_date = new Date(res[i].date.local);
+					row.textContent = `[${out_date.toDateString()} ${out_date.toTimeString().split(' ')[0]}]: ${res[i].value} ${res[i].unit} de ${res[i].parameter}`;
+					this.result.appendChild(row);
+				}
+			} else
+				console.error("Too much requests ?");
+	
+			// On rafraichit toute les minutes à peu près
+			this.refreshTimeout = setTimeout(this.refreshResults.bind(this), 60*1000);
+		})
+		.catch(() => {
+			console.error("Unable to connect");
+			this.refreshTimeout = setTimeout(this.refreshResults.bind(this), 10*1000);
+		});
 	}
 
 	async handleSubmission(ev) : Promise<void> {
 		ev.preventDefault();
 
-		console.log(ev.submitter);
 		if(ev.submitter == null) {
 			return this.handleLocationText();
 		}
 
-		const resp_val = await this.getMeasurements(
-			this.locations[ev.submitter.value].geometry.coordinates[1],
-			this.locations[ev.submitter.value].geometry.coordinates[0]
-		);
-		this.reco.style.visibility = "hidden";
-
-		const res = resp_val.results;
-		this.clearOutput();
-		for(let i = 0; i < res.length; i ++) {
-			let row = document.createElement("div");
-			row.textContent = `${res[i].date.local}: ${res[i].value} ${res[i].unit}` ;
-			this.result.appendChild(row);
-		}
+		this.currentLatitude = this.locations[ev.submitter.value].geometry.coordinates[1];
+		this.currentLongitutde = this.locations[ev.submitter.value].geometry.coordinates[0];
+		
+		this.clearRecommandations();
+		this.refreshResults();
 
 		this.result.style.visibility = "visible";
 	}
