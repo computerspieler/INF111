@@ -4,5 +4,8 @@
     "outDir": "out",
     "sourceMap": true
   },
+  "compilerOptions": {
+	  "skipLibCheck": true
+  },
   "files": ["src/app.ts"]
 }

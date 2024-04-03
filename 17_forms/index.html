@@ -8,13 +8,17 @@
 
 <body>
     <script src="out/app.js"></script>
-    <form id="myForm">
-        <label for="name">Name:</label>
-        <input type="text" id="name" />
-        <label for="checkbox">Student</label>
-        <input type="checkbox" id="isStudent" />
-        <button type="submit">Submit</button>
+    <form id="form">
+        <label for="name">City:</label>
+        <input type="text" id="city" />
         <div id="result"></div>
+		<table id="reco" border="1px solid">
+			<thead><tr>
+				<th>Ville</th><th>Departement</th><th>Region</th><th>Pays</th><th></th>
+			</tr></thead>
+			<tbody id="reco_body">
+			</tbody>
+		</table>
     </form>
 </body>
 
