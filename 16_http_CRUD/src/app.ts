@@ -82,15 +82,15 @@ class DeleteClient<T> extends HttpClient<T> {
 
 class DeleteCategory {
 	protected restaurants_url: string;
-	protected catDeleter: DeleteClient<Category>;
+	protected catKiller/*Show*/: DeleteClient<Category>;
 
 	constructor(url: string, restaurants_url: string) {
-		this.catDeleter = new DeleteClient<Category>(url);
+		this.catKiller = new DeleteClient<Category>(url);
 		this.restaurants_url = restaurants_url;
 	}
 
 	public async execute(): Promise<Restaurant[] | void> {
-		return this.catDeleter.execute().then((category : Category) => {
+		return this.catKiller.execute().then((category : Category) => {
 			if(!category)
 				return;
 			
@@ -117,6 +117,121 @@ class DeleteCategory {
 }
 
 
+class ModifyCategory {
+	protected restaurants_url: string;
+	protected catUpdater: UpdateClient<Category>;
+
+	constructor(url: string, data : Category, restaurants_url: string) {
+		this.catUpdater = new UpdateClient<Category>(url, data);
+		this.restaurants_url = restaurants_url;
+	}
+
+	public async execute(): Promise<Restaurant[] | void> {
+		return this.catUpdater.execute().then((category : Category) => {
+			if(!category)
+				return;
+			
+			return new ReadClient<Restaurant[]>(this.restaurants_url)
+			.execute()
+			.then((restaurants) => {
+				if(!restaurants)
+					return;
+
+				restaurants.map((rest) => {
+					if(!(rest.id in category.restaurantIds))
+						rest.categoryIds = rest.categoryIds.filter((id: string) => id != category.id);
+					let updateReq = new UpdateClient<Restaurant>(`${this.restaurants_url}/${rest.id}`, rest);
+					return updateReq.execute();
+				});
+
+				return restaurants;
+			});
+		})
+		.catch(() => {
+			console.log("Already deleted !");
+		});
+	}
+}
+
+
+class DeleteRestaurant {
+	protected category_url: string;
+	protected restKiller: DeleteClient<Restaurant>;
+
+	constructor(url: string, category_url: string) {
+		this.restKiller = new DeleteClient<Restaurant>(url);
+		this.category_url = category_url;
+	}
+
+	public async execute(): Promise<Category[] | void> {
+		return this.restKiller.execute().then((restaurant : Restaurant) => {
+			if(!restaurant)
+				return;
+			
+			return new ReadClient<Category[]>(this.category_url)
+			.execute()
+			.then((categories) => {
+				if(!categories)
+					return;
+
+				categories.map((cat) => {
+					const restID = cat.restaurantIds.filter((id: string) => id != restaurant.id);
+					cat.restaurantIds = restID;
+					let updateReq = new UpdateClient<Restaurant>(`${this.category_url}/${cat.id}`, cat);
+					return updateReq.execute();
+				});
+
+				return categories;
+			});
+		})
+		.catch(() => {
+			console.log("Already deleted !");
+		});
+	}
+}
+
+
+class ModifyRestaurant {
+	protected category_url: string;
+	protected restUpdater: UpdateClient<Restaurant>;
+
+	constructor(url: string, data : Category, category_url: string) {
+		this.restUpdater = new UpdateClient<Category>(url, data);
+		this.category_url = category_url;
+	}
+
+	public async execute(): Promise<Category[] | void> {
+		return this.restUpdater.execute().then((restaurant: Restaurant) => {
+			if(!restaurant)
+				return;
+			
+			return new ReadClient<Category[]>(this.category_url)
+			.execute()
+			.then((categories : Category[]) => {
+				if(!categories)
+					return;
+
+				categories.map((category : Category) => {
+					if(category.id in restaurant.categoryIds) {
+						if(!(restaurant.id in category.restaurantIds))
+							category.restaurantIds.push(restaurant.id);
+					} else
+						category.restaurantIds = category.restaurantIds.filter((id: string) => id != restaurant.id);
+					
+					let updateReq = new UpdateClient<Restaurant>(`${this.category_url}/${category.id}`, category);
+					return updateReq.execute();
+				});
+
+				return categories;
+			});
+		})
+		.catch(() => {
+			console.log("Already deleted !");
+		});
+	}
+}
+
+
 //lecture de tous les restaurants
 const restaurant_url = "http://localhost:3000/restaurants";
 const category_url = "http://localhost:3000/categories";
@@ -131,12 +246,8 @@ readClient.execute().then((restaurants) => {
 });
 
 //suppression du restaurant "Le Café Rigolo"
-const deleteClient = new DeleteClient<Restaurant>(`${restaurant_url}/3aa8`);
-deleteClient.execute().then((restaurant) => {
-	if (restaurant) {
-		console.log(`DELETE id : ${restaurant.id} name : ${restaurant.name} `);
-	}
-});
+const deleteClient = new DeleteRestaurant(`${restaurant_url}/3aa8`, category_url);
+deleteClient.execute();
 
 //création du restaurant "Le Restaurant de la Joie"
 const data: Restaurant = {
@@ -157,26 +268,8 @@ const updatedData: Restaurant = {
 	name: "Le Grill Super Marrant",
 };
 
-const updateClient = new UpdateClient<Restaurant>(`${restaurant_url}/12b3`, updatedData);
-updateClient.execute().then((restaurant) => {
-	if (restaurant) {
-		console.log(`UPDATE id : ${restaurant.id} name : ${restaurant.name} `);
-	}
-});
+const updateRestaurant = new ModifyRestaurant(`${restaurant_url}/12b3`, updatedData, category_url);
+updateRestaurant.execute();
 
 const deleteCategory = new DeleteCategory(`${category_url}/71b2`, restaurant_url);
-deleteCategory.execute().then((restaurants) => {
-	console.log(restaurants);
-});
-
-/*la sortie de la console devrait être : (attention à l'order des opérations asynchrones 
-qui peut varier à chaque exécution du code)
-
-READ id : a45d name : Le Bistrot du Rire 
-READ id : 12b3 name : Le Grill Marrant 
-READ id : 3aa8 name : Le Café Rigolo 
-READ id : 55fa name : La Crêperie Rigolote 
-DELETE id : 3aa8 name : Le Café Rigolo 
-UPDATE id : 12b3 name : Le Grill Super Marrant 
-CREATE id : 82ef name : Le Restaurant de la Joie 
-*/
+deleteCategory.execute();
