@@ -65,7 +65,7 @@ with open('geonames-all-cities-with-a-population-1000.csv', 'r') as fi:
 		coords = row[coord_col].replace(" ", "").split(",")
 		cities.append(City(
 			row[name_col], row[ascii_name_col],
-			float(coords[0]), float(coords[1]),
+			float(coords[1]), float(coords[0]),
 			row[country_code_col]
 		))
 
