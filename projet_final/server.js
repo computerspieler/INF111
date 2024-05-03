@@ -76,12 +76,18 @@ async function startAutocompletionServer() {
 				return city.country == country_code;
 			});
 		}
+
         if(found_entries.length == 0) {
             autocompletion404(res);
             return;
         }
 
-        res.writeHead(200, {"Content-Type": "application/json"});
+		/* TODO: Pemettre d'ajuster le nombre d'élements */
+		if(found_entries.length > 10) {
+			found_entries = found_entries.slice(0, 10);
+		}
+
+        res.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"});
         res.end(JSON.stringify({elements: found_entries}));
     });
 
