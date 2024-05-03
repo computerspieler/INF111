@@ -50,7 +50,7 @@ function findInDatabase(db, text, text_index=0) {
 
 function autocompletion404(res) {
     res.writeHead(404, {"Content-Type": "application/json"});   
-    res.end("{}");
+    res.end('{"elements":[]}');
     return;
 }
 
