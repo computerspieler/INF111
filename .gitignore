@@ -2,3 +2,4 @@
 */out
 node_modules
 output-db.json
+geonames-all-cities-with-a-population-1000.csv

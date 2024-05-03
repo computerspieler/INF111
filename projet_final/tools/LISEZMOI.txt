@@ -4,3 +4,5 @@ et executer le script format.py.
 
 Si tout se passe bien, alors vous aurez un fichier "output-db.json", mettez le alors dans le meme
 dossier que le serveur, puis lancez le serveur.
+
+Un script est fourni pour automatiser le processus
