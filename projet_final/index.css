@@ -1,0 +1,48 @@
+body {
+	background-color: lightgray;
+	
+	width: max-content;
+}
+
+.search {
+	background-color: white;
+	border-style: solid;
+	border-color: white;
+	border-left-width: 30px;
+	border-right-width: 30px;
+	width: max-content;
+	border-radius: 1em;
+}
+
+input#search {
+	border: none;
+}
+
+#search-reco {
+	background-color: white;
+	border: solid 1px lightgray;
+
+	width: 130%;
+	height: max-content;
+	align-items: stretch;
+
+	border-radius: 10px;
+	padding: 3%;
+	text-align: center;
+	color: #797979;
+}
+
+.search-reco-data {
+	background-color: white;
+	
+	color: #393939;
+	text-align: left;
+
+	padding-left: 10%;
+	padding-right: 10%;
+
+	padding-top: 2%;
+	padding-bottom: 2%;
+	border-radius: 10px;
+	border: solid 1px #e3e3e3;
+}
