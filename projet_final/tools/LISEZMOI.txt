@@ -1,0 +1,6 @@
+Vous pouvez retrouver la base de donnée ici : https://public.opendatasoft.com/explore/dataset/geonames-all-cities-with-a-population-1000/export/?flg=fr-fr&disjunctive.cou_name_en&sort=name
+Téléchargez la base de données au format CSV puis (sans la renommez), mettez la dans ce dossier,
+et executer le script format.py.
+
+Si tout se passe bien, alors vous aurez un fichier "output-db.json", mettez le alors dans le meme
+dossier que le serveur, puis lancez le serveur.
