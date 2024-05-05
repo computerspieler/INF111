@@ -2,4 +2,5 @@
 */out
 node_modules
 output-db.json
+package-lock.json
 geonames-all-cities-with-a-population-1000.csv

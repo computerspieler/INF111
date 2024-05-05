@@ -42,6 +42,7 @@ interface Measurement {
 }
 
 interface OpenAQReturn<T> {
+	message?: string;
 	meta?: any;
 	results: T[];
 }
@@ -178,11 +179,19 @@ class FormHandler
 					row.textContent = `[${out_date.toDateString()} ${out_date.toTimeString().split(' ')[0]}]: ${res[i].value} ${res[i].unit} de ${res[i].parameter}`;
 					this.result.appendChild(row);
 				}
-			} else
-				console.error("Too much requests ?");
-	
-			// On rafraichit toute les minutes à peu près
-			this.refreshTimeout = setTimeout(this.refreshResults.bind(this), 60*1000);
+				// On rafraichit toute les minutes à peu près
+				this.refreshTimeout = setTimeout(this.refreshResults.bind(this), 60*1000);
+			} else {
+				if(resp_val.message != undefined) {
+					this.refreshTimeout = setTimeout(this.refreshResults.bind(this), 10*1000);
+					console.error("Too much requests !");
+				} else {
+					let row = document.createElement("div");
+					row.textContent = `Il n'y a pas de données disponibles`;
+					this.result.appendChild(row);
+					this.refreshTimeout = setTimeout(this.refreshResults.bind(this), 60*1000);
+				}
+			}
 		})
 		.catch(() => {
 			console.error("Unable to connect");
