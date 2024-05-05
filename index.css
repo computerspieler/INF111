@@ -1,0 +1,16 @@
+body {
+	background: #595959;
+	color: lightgray;
+	text-align: center;
+}
+
+a {
+	width: max-content;
+	height: max-content;
+	color: lightgray;
+	text-decoration: inherit;
+}
+
+a:hover {
+	color: gray;
+}
