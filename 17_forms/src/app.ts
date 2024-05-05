@@ -2,30 +2,16 @@ window.onload = () => {
 	new FormHandler();
 };
 
-/* Geocode */
-// Volé avec fierté du site de OpenAQ
-const GEOCODE_API_KEY = "ge-9a9d07c380e99828";
-
-interface GeocodeReturn<T> {
-	type: string;
-	features: T[];
+/* Autocompletion */
+interface AutoCompletionResult {
+	name: string;
+	country: string;
+	longitude: number;
+	latitude: number;
 }
 
-interface GeocodeGeometry {
-	type: string;
-	coordinates?: [number, number];
-}
-
-interface GeocodeProperties {
-	name: string;			/* La ville */
-	macroregion: string;	/* La région */
-	region: string;			/* Le département */
-	country: string;		/* Le pays */
-}
-
-interface GeocodeResult {
-	geometry: GeocodeGeometry;
-	properties: GeocodeProperties;
+interface AutoCompletionResponse {
+	elements: AutoCompletionResult[];
 }
 
 /* OpenAQ */
@@ -62,7 +48,7 @@ class FormHandler
 	reco_body: HTMLElement;
 	on_error: HTMLElement;
 
-	locations: GeocodeResult[];
+	locations: AutoCompletionResult[];
 	currentLatitude: number;
 	currentLongitutde: number;
 
@@ -86,8 +72,8 @@ class FormHandler
 		//this.city.addEventListener("keypress", this.handleLocationText.bind(this));
 	}
 
-	async getLocations(input: string): Promise<GeocodeReturn<GeocodeResult>> {
-		const uri = `http://localhost:8088/https://api.geocode.earth/v1/autocomplete?api_key=${GEOCODE_API_KEY}&layers=coarse&text=${input}`;
+	async getLocations(input: string): Promise<AutoCompletionResponse> {
+		const uri = `http://localhost:5055/?text=${input}`;
 		const req = await fetch(uri);
 		return req.json();
 	}
@@ -118,12 +104,11 @@ class FormHandler
 	}
 
 	async handleLocationText() : Promise<void> {
-		this.locations = (await this.getLocations(this.city.value)).features;
+		this.locations = (await this.getLocations(this.city.value)).elements;
 
 		this.clearRecommandations();
 		this.resetOutput();
 
-		this.locations = this.locations.filter((elt) => elt.geometry.type == "Point");
 		if(this.locations.length == 0) {
 			this.on_error.style.visibility = "visible";
 			return;
@@ -144,10 +129,8 @@ class FormHandler
 				row.appendChild(col);
 			};
 
-			addCol(elt.properties.name);
-			addCol(elt.properties.region);
-			addCol(elt.properties.macroregion);
-			addCol(elt.properties.country);
+			addCol(elt.name);
+			addCol(elt.country);
 
 			col = document.createElement("td");
 			button = document.createElement("button");
@@ -206,8 +189,8 @@ class FormHandler
 			return this.handleLocationText();
 		}
 
-		this.currentLatitude = this.locations[ev.submitter.value].geometry.coordinates[1];
-		this.currentLongitutde = this.locations[ev.submitter.value].geometry.coordinates[0];
+		this.currentLatitude = this.locations[ev.submitter.value].latitude;
+		this.currentLongitutde = this.locations[ev.submitter.value].longitude;
 		
 		this.clearRecommandations();
 		this.refreshResults();
