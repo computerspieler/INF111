@@ -15,8 +15,17 @@ git checkout 16_http_CRUD/db.json
 for d in $(find . -maxdepth 1 -type d | sort); do
 	cd "$MAINDIR/$d"
 	if [[ -f "tsconfig.json" ]]; then
-		echo "Création des fichiers .js pour $d"
-		[[ ! -d "out" ]] && tsc
+		if [ ! -d "out" ]; then
+			echo "Création des fichiers .js pour $d"
+			tsc
+		else
+			files_newer_count=$(find . -maxdepth 2 -type f -name "*.ts" -newer "out" | wc -l)
+			if [[ ! $files_newer_count -eq 0 ]]; then
+				rm -rf out
+				echo "Création des fichiers .js pour $d"
+				tsc
+			fi
+		fi
 	fi
 done
 
