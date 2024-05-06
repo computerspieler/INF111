@@ -5,15 +5,16 @@ MAINDIR=$(pwd)
 if [[ ! -f "output-db.json" ]]; then
 cd tools
 ./build-db.sh
-cd $(MAINDIR)
+cd "$MAINDIR"
 fi
 
+cd "$MAINDIR"
 # On réinitaliser la base de donnée
 git checkout 16_http_CRUD/db.json
 
 # On crée les fichiers .js
-for d in $(find . -maxdepth 1 -type d | sort); do
-	cd "$MAINDIR/$d"
+find "$MAINDIR" -maxdepth 1 -type d -print0 | while IFS= read -r -d '' d; do
+	cd "$d"
 	if [[ -f "tsconfig.json" ]]; then
 		if [ ! -d "out" ]; then
 			echo "Création des fichiers .js pour $d"
