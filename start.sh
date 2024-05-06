@@ -35,4 +35,4 @@ cd "$MAINDIR"
 [[ ! -d "node_modules" ]] && npm install
 
 npx json-server 16_http_CRUD/db.json &
-node server.js
+node projet_final/server.js
