@@ -8,91 +8,10 @@ const autocompletion_port = 5055;
 const http_port = 5000;
 
 /* The web server */
-async function readFile(path)
-{
-    return (await fs.readFile(path ,"utf8", (err, data) => {
-        if(err) throw err;
-        return data;
-    }));
-}
-
-async function retrieveFiles(js_folder, static_folder) {
-    let fileArray = [];
-    if(!static_folder.endsWith("/"))
-        static_folder += "/";
-    if(!js_folder.endsWith("/"))
-        js_folder += "/";
-
-    await (
-		fs.readdir(static_folder, (err, files) => {
-			if(err) throw err;
-			return files
-		}).then(files => {
-			files.forEach((file) => {
-				let path = static_folder + file;
-				const entryName = file.toLowerCase();
-				if(!entryName.endsWith(".html") && !entryName.endsWith(".css"))
-					return;
-
-				fileArray.push(readFile(path)
-					.then(data => [entryName, data])
-				);
-			});
-		})
-	);
-
-    await (
-		fs.readdir(js_folder, (err, files) => {
-			if(err) throw err;
-			return files
-		}).then(files => {
-			files.forEach((file) => {
-				let path = js_folder + file;
-				const entryName = path.toLowerCase();
-				if(!entryName.endsWith(".js"))
-					return;
-
-				fileArray.push(readFile(path)
-					.then(data => [entryName, data])
-				);
-			})
-		})
-	);
-
-    return (await (Promise.all(fileArray)));
-}
-
-retrieveFiles("out", ".").then(filesArray => {
-	const app_http = express();
-	filesArray.forEach(file => {
-		const entryName = file[0];
-		const data = file[1];
-
-		if(entryName.endsWith(".css")) {
-			app_http.get('/' + entryName, (req, res) => {
-				res.set('Content-Type', 'text/css');
-				res.send(data);
-			});
-		} else if(entryName.endsWith(".html")) {
-			let callback = (req, res) => {
-				res.set('Content-Type', 'text/html');
-				res.send(data);
-			};
-
-			if(entryName == "index.html")
-				app_http.get('/', callback);	
-			app_http.get('/' + entryName, callback);
-		} else if(entryName.endsWith(".js")) {
-			app_http.get('/' + entryName, (req, res) => {
-				res.set('Content-Type', 'text/javascript');
-				res.send(data);
-			});
-		}
-	});
-
-	app_http.listen(http_port, () => {
-		console.log('HTTP server is running on port ' + http_port);
-	});
+const app_http = express();
+app_http.use('/', express.static("./public"));
+app_http.listen(http_port, () => {
+	console.log('HTTP server is running on port ' + http_port);
 });
 
 /* The proxy */

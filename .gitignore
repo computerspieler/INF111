@@ -1,5 +1,4 @@
-out/*.js
-out
+public/out
 node_modules
 output-db.json
 package-lock.json

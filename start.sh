@@ -9,13 +9,13 @@ cd "$MAINDIR"
 fi
 
 # On crée les fichiers .js
-if [ ! -d "out" ]; then
+if [ ! -d "public/out" ]; then
 	echo "Création des fichiers .js"
 	tsc
 else
-	files_newer_count=$(find . -maxdepth 2 -type f -name "*.ts" -newer "out" | wc -l)
+	files_newer_count=$(find . -maxdepth 2 -type f -name "*.ts" -newer "public/out" | wc -l)
 	if [[ ! $files_newer_count -eq 0 ]]; then
-		rm -rf out
+		rm -rf public/out
 		echo "Création des fichiers .js"
 		tsc
 	fi

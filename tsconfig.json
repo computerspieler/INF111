@@ -1,11 +1,9 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "outDir": "out",
-    "sourceMap": true
-  },
-  "compilerOptions": {
-	  "skipLibCheck": true
+    "outDir": "public/out",
+    "sourceMap": true,
+	"skipLibCheck": true
   },
   "files": ["src/app.ts"]
 }
