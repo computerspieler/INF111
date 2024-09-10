@@ -28,8 +28,7 @@ Et normalement tout est prêt pour lancer le projet.
 
 ## Démarrage manuel du serveur
 Si le script `start.sh` ne fonctionne pas et que vous voulez démarrer le serveur:
-- Executez les commande `node projet_final/server.js` depuis la racine du projet.
-- Executez la commande `npx json-server 16_http_CRUD/db.json` depuis la racine du projet.
+- Executez les commande `node server.js` depuis la racine du projet.
 - Lancez une instance de Five-Server à la racine du projet.
 
 L'ordre importe peu, tant que ces commandes sont executés en parallèle, il ne devrait

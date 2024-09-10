@@ -1,5 +1,5 @@
 *.js
-*/out
+out
 node_modules
 output-db.json
 package-lock.json

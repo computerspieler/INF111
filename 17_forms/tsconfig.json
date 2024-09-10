@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "target": "es6",
-    "outDir": "out",
-    "sourceMap": true,
-	"skipLibCheck": true
-  },
-  "files": ["src/app.ts"]
-}
